@@ -52,7 +52,7 @@ variable "db_password" {
         length(var.db_password) >= 8 &&
         length(var.db_password) <= 128 &&
         # forbid / ' " @ and whitespace
-        !can(regex("[/\'\"@\\s]", var.db_password))
+        !can(regex("[/\"'@[:space:]]", var.db_password))
       )
     )
     error_message = "db_password must be 8–128 chars and cannot contain / ' \" @ or spaces."
