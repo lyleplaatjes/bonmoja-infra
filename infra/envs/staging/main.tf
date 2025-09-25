@@ -78,6 +78,7 @@ module "ecs" {
   container_image     = "${module.ecr.repository_url}:${var.image_tag}"
   container_port      = 5678
   desired_count       = 1
+  region              = var.region
   task_role_arn       = module.iam.task_role_arn
   exec_role_arn       = module.iam.exec_role_arn
   health_check_path   = "/"
