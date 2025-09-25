@@ -5,11 +5,8 @@ variable "public_subnet_ids"   { type = list(string) }
 variable "container_image"     { type = string }
 variable "task_role_arn"       { type = string }
 variable "exec_role_arn"       { type = string }
+variable "region"              { type = string }
 
-variable "region" {
-    type    = string
-    default = "eu-west-1"
-    }
 
 variable "container_port" { 
     type = number 
