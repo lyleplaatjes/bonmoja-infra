@@ -13,7 +13,12 @@ resource "aws_security_group" "rds" {
     protocol        = "tcp"
     security_groups = var.allowed_sg_ids
   }
-  egress { from_port = 0 to_port = 0 protocol = "-1" cidr_blocks = ["0.0.0.0/0"] }
+  egress { 
+    from_port = 0 
+    to_port = 0 
+    protocol = "-1" 
+    cidr_blocks = ["0.0.0.0/0"] 
+    }
 }
 
 resource "aws_db_instance" "this" {

@@ -6,7 +6,10 @@ resource "aws_iam_role" "ecs_exec" {
 data "aws_iam_policy_document" "ecs_assume" {
   statement {
     actions = ["sts:AssumeRole"]
-    principals { type = "Service" identifiers = ["ecs-tasks.amazonaws.com"] }
+    principals { 
+        type = "Service" 
+        identifiers = ["ecs-tasks.amazonaws.com"] 
+    }
   }
 }
 resource "aws_iam_role_policy_attachment" "ecs_exec_ecr" {
