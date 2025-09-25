@@ -67,8 +67,7 @@ module "iam" {
 }
 
 # --- ECS (Fargate) + ALB ---
-# For demo, use hashicorp/http-echo from Docker Hub
-# You can swap to your own ECR image later: "${module.ecr.repository_url}:${var.image_tag}"
+
 module "ecs" {
   source              = "../../modules/ecs"
   name                = local.name
