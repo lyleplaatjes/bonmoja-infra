@@ -37,11 +37,11 @@ jobs:
 
       - name: Terraform Plan
         run: cd infra/envs/staging && terraform plan -input=false
-        
+
   apply_staging:
     # only run on direct pushes to main (not on PRs)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: plan
+    needs: terraform
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
