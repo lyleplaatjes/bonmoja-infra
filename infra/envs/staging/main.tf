@@ -82,13 +82,21 @@ module "ecs" {
   health_check_path   = "/"
 }
 
+# --- DB Password ---
+resource "random_password" "db" {
+  length  = 24
+  special = true
+  # exclude characters that RDS rejects
+  override_characters = "!#$%^&*()-_=+[]{}:,.?~" 
+}
+
 # --- RDS Postgres ---
 module "rds" {
   source         = "../../modules/rds"
   name           = local.name
   db_name        = "appdb"
   username       = var.db_username
-  password       = var.db_password
+  password       = var.db_password != "" ? var.db_password : random_password.db.result
   subnet_ids     = module.vpc.private_subnet_ids
   vpc_id         = module.vpc.vpc_id
   allowed_sg_ids = [module.ecs.ecs_sg_id] # expose SG via output below

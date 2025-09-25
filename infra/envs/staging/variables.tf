@@ -26,6 +26,10 @@ variable "image_tag" {
 variable "notification_email" {
   description = "Notification email address"
   type        = string
+  validation {
+    condition     = can(regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", trim(var.notification_email)))
+    error_message = "notification_email must be a valid email address with no spaces."
+  }
 }
 
 variable "db_username" {
@@ -35,8 +39,20 @@ variable "db_username" {
 }
 
 variable "db_password" {
-  description = "Database password"
-  type        = string
+  type      = string
+  sensitive = true
+  default   = ""   # allows falling back to random_password
+  validation {
+    condition = (
+      var.db_password == "" ||
+      (length(var.db_password) >= 8 &&
+       length(var.db_password) <= 128 &&
+       !contains(var.db_password, "/") &&
+       !contains(var.db_password, "'") &&
+       !contains(var.db_password, "\"") &&
+       !contains(var.db_password, "@") &&
+       !can(regex("\\s", var.db_password)) )
+    )
+    error_message = "db_password must be 8–128 chars and cannot contain / ' \" @ or spaces."
+  }
 }
-
-# set via TF_VAR_db_password Github Actions secret
