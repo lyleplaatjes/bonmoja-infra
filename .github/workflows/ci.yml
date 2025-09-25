@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
   pull_request:
 
+env:
+  AWS_REGION: eu-west-1
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
