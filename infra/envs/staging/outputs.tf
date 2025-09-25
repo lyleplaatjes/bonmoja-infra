@@ -9,3 +9,7 @@ output "rds_endpoint"  {
 output "dynamo_table"  {
      value = module.dynamo.table_name 
      }
+
+output "ecr_repository_url" {
+     value = module.ecr.repository_url 
+     }

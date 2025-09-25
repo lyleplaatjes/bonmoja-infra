@@ -1,0 +1,59 @@
+name: Build & Push (ECR)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+env:
+  AWS_REGION: eu-west-1
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Tag image with commit SHA
+      - name: Set image tag
+        id: tags
+        run: echo "tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+
+      # Get ECR repo URL from Terraform outputs; fallback to discovery
+      - name: Determine ECR repository URL
+        id: ecr
+        run: |
+          # Try reading from Terraform outputs (repo already provisioned by infra)
+          if [ -d infra/envs/staging ]; then
+            (cd infra/envs/staging && terraform init -input=false >/dev/null 2>&1 || true)
+            ECR_URL=$(cd infra/envs/staging && terraform output -raw ecr_repository_url 2>/dev/null || true)
+          fi
+
+          if [ -z "$ECR_URL" ]; then
+            # Fallback: try to find any repo that contains 'staging-repo'
+            ECR_URL=$(aws ecr describe-repositories --query 'repositories[?contains(repositoryName, `staging-repo`)].repositoryUri' --output text || true)
+          fi
+
+          if [ -z "$ECR_URL" ]; then
+            echo "❌ Could not determine ECR repo URL. Ensure Terraform has created the ECR repository and exposes output 'ecr_repository_url'."
+            exit 1
+          fi
+
+          echo "url=$ECR_URL" >> $GITHUB_OUTPUT
+          echo "Using ECR: $ECR_URL"
+
+      - name: Build image
+        run: docker build -t ${{ steps.ecr.outputs.url }}:${{ steps.tags.outputs.tag }} .
+
+      - name: Push image
+        run: docker push ${{ steps.ecr.outputs.url }}:${{ steps.tags.outputs.tag }}

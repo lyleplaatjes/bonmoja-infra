@@ -1,0 +1,70 @@
+name: Deploy (Terraform + ECS + Health Check)
+
+on:
+  workflow_run:
+    workflows: [ "Build & Push (ECR)" ]
+    types: [ "completed" ]
+
+env:
+  AWS_REGION: eu-west-1
+  # Terraform vars (from repo secrets)
+  TF_VAR_notification_email: ${{ secrets.NOTIFICATION_EMAIL }}
+  TF_VAR_db_password:        ${{ secrets.DB_PASSWORD }}
+
+jobs:
+  deploy_staging:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'main')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo at the triggering commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      # The image tag we just built = triggering commit SHA
+      - name: Set image tag from triggering commit
+        id: tag
+        run: echo "val=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+
+      - name: Terraform Init
+        working-directory: infra/envs/staging
+        run: terraform init -input=false
+
+      - name: Terraform Plan (with image tag)
+        working-directory: infra/envs/staging
+        env:
+          TF_VAR_image_tag: ${{ steps.tag.outputs.val }}
+        run: terraform plan -input=false
+
+      - name: Terraform Apply (staging)
+        working-directory: infra/envs/staging
+        env:
+          TF_VAR_image_tag: ${{ steps.tag.outputs.val }}
+        run: terraform apply -auto-approve
+
+      - name: Fetch ALB DNS from Terraform
+        id: alb
+        working-directory: infra/envs/staging
+        run: |
+          ALB=$(terraform output -raw alb_dns_name)
+          echo "url=http://${ALB}" >> $GITHUB_OUTPUT
+          echo "ALB: http://${ALB}"
+
+      - name: Health check (HTTP 2xx/3xx on /)
+        run: |
+          bash scripts/health_check.sh "${{ steps.alb.outputs.url }}" "/" 20 10

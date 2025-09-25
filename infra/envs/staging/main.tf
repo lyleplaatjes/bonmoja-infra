@@ -74,7 +74,7 @@ module "ecs" {
   vpc_id              = module.vpc.vpc_id
   public_subnet_ids   = module.vpc.public_subnet_ids
   private_subnet_ids  = module.vpc.private_subnet_ids
-  container_image     = "hashicorp/http-echo"
+  container_image     = "${module.ecr.repository_url}:${var.image_tag}"
   container_port      = 5678
   desired_count       = 1
   task_role_arn       = module.iam.task_role_arn
