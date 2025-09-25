@@ -18,7 +18,7 @@ resource "aws_sns_topic" "topic" {
 resource "aws_sns_topic_subscription" "email" {
   topic_arn = aws_sns_topic.topic.arn
   protocol  = "email"
-  endpoint  = trim(var.email_endpoint)
+  endpoint = trimspace(var.email_endpoint)
 }
 
 output "queue_arn" { value = aws_sqs_queue.queue.arn }

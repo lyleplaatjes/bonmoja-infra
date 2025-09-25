@@ -84,11 +84,12 @@ module "ecs" {
 
 # --- DB Password ---
 resource "random_password" "db" {
-  length  = 24
-  special = true
-  # exclude characters that RDS rejects
-  override_characters = "!#$%^&*()-_=+[]{}:,.?~" 
+  length          = 24
+  special         = true
+  # limit specials to a set RDS accepts
+  override_special = "!#$%^&*()-_=+[]{}:,.?~"
 }
+
 
 # --- RDS Postgres ---
 module "rds" {
