@@ -90,13 +90,13 @@ resource "aws_ecs_task_definition" "td" {
 
   container_definitions = jsonencode([
     {
-      name      = "app",
-      image     = var.container_image,
-      essential = true,
-      portMappings = [{ containerPort = var.container_port, hostPort = var.container_port }],
+      name             = "app",
+      image            = var.container_image,
+      essential        = true,
+      portMappings     = [{ containerPort = var.container_port, hostPort = var.container_port }],
       logConfiguration = {
-        logDriver = "awslogs",
-        options   = {
+        logDriver      = "awslogs",
+        options        = {
           awslogs-group         = aws_cloudwatch_log_group.this.name,
           awslogs-region        = data.aws_region.current.name,
           awslogs-stream-prefix = "ecs"

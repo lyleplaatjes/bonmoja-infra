@@ -61,6 +61,7 @@ module "dynamo" {
 # --- IAM (task & exec roles) ---
 module "iam" {
   source           = "../../modules/iam"
+  name             = local.name
   dynamo_table_arn = module.dynamo.table_arn
   sqs_queue_arn    = module.sqs_sns.queue_arn
   allow_secrets    = false
