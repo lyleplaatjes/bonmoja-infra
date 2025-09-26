@@ -117,3 +117,4 @@ terraform destroy
 - [SOLUTION.md](SOLUTION.md) → Detailed architecture overview, trade-offs, monitoring/security rationale, cost strategies
 - [scripts/health_check.sh](scripts/health_check.sh)
 - [bonmoja-architecture.drawio](bonmoja-architecture.drawio) → Editable architecture diagram
+..
